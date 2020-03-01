@@ -24,6 +24,9 @@ Adept MobileRobots for information about a commercial version of ARIA at
 robots@mobilerobots.com or
 Adept MobileRobots, 10 Columbia Drive, Amherst, NH 03031; +1-603-881-7960
 */
+
+#ifdef DEBUG
+
 #include "Aria.h"
 #include <ArGripper.h>
 
@@ -311,5 +314,131 @@ int main(int argc, char **argv)
 
   ArLog::log(ArLog::Normal, "simpleMotionCommands: Exiting.");
   Aria::exit(0);
+
   return 0;
 }
+
+#else
+#include <string>
+#include <iostream>
+#include <cstdlib>
+
+using namespace std;
+
+enum direction { NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3 };
+
+class Navigator {
+
+public:
+	direction currentDirection = NORTH;
+
+	string currentStatus;
+
+	void intit(string currentState, string plan) {
+		this->currentStatus = currentStatus;
+		solve(plan);
+	}
+
+	void greifO() {
+
+	}
+
+	void greifU() {
+
+	}
+
+	
+	void turn(direction goal) {
+	
+		int turnNumber = abs(this->currentDirection - goal);
+
+		if (turnNumber < 2) {
+			for (int i = 0; i < turnNumber; i++)
+			turnRight();
+		}
+		else {	
+			for(int i = 0; i < 4 - turnNumber; i++)
+				turnLeft();
+		}
+
+		this->currentDirection = goal;
+	}
+
+	void turnLeft() {
+
+		cout << "turnleft()";
+	}
+
+	void turnRight() {
+
+		cout << "turnRight()";
+	}
+
+	void lassO() {
+
+		cout << "lassO";
+	}
+
+	void lassU() {
+
+		cout << "lassU";
+	}
+
+	void move(char move[2]) {
+		
+		//turn the robot the start direction
+		direction startDirection = (direction)(move[0] / 2);
+		turn(startDirection);
+		
+
+		//carry the box
+		//is the box up or down
+		if (move[0] % 2 == 1) {
+			greifO();
+		}
+		else {
+			greifU();
+		}
+
+		//find the goal direction and turn the robot to it
+		direction goalDirection = (direction)(move[1] / 2);
+		turn(goalDirection);
+		
+		if (move[1] % 2 == 1) {
+			lassO();
+		}
+		else {
+			lassU();
+		}
+
+
+	}
+
+	void solve(string plan) {
+		//cout << plan.size() << endl;
+		for (unsigned int i = 0; i < plan.size() / 2; i++) {
+			//cout << plan.at(i * 2) << " " << plan.at(i * 2 + 1) << endl;
+			char a[2] = { plan.at(i * 2) , plan.at(i * 2 + 1) };
+			move(a);
+		}
+		
+	}
+
+
+	
+	
+
+
+
+};
+
+int main() {
+
+	Navigator n = Navigator();
+
+	string startStatus = "B-AC--D-";
+	string plan = "34216243";
+	n.intit(startStatus, plan);
+}
+
+#endif // !1
