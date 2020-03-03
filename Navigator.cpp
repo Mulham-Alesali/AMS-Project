@@ -1,29 +1,4 @@
-/*
-Adept MobileRobots Robotics Interface for Applications (ARIA)
-Copyright (C) 2004-2005 ActivMedia Robotics LLC
-Copyright (C) 2006-2010 MobileRobots Inc.
-Copyright (C) 2011-2015 Adept Technology, Inc.
-Copyright (C) 2016 Omron Adept Technologies, Inc.
 
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     GNU General Public License for more details.
-
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-If you wish to redistribute ARIA under different terms, contact
-Adept MobileRobots for information about a commercial version of ARIA at
-robots@mobilerobots.com or
-Adept MobileRobots, 10 Columbia Drive, Amherst, NH 03031; +1-603-881-7960
-*/
 
 #ifdef DEBUG
 
@@ -319,9 +294,15 @@ int main(int argc, char **argv)
 }
 
 #else
+
+
 #include <string>
 #include <iostream>
 #include <cstdlib>
+#include <fstream>
+#include <streambuf>
+#include <bits.h> 
+#include <sstream>
 
 using namespace std;
 
@@ -340,52 +321,73 @@ public:
 	}
 
 	void greifO() {
-
+		cout << "greifO" << endl;
 	}
 
 	void greifU() {
-
+		cout << "griefU" << endl;
 	}
 
 	
 	void turn(direction goal) {
-	
-		int turnNumber = abs(this->currentDirection - goal);
-
-		if (turnNumber < 2) {
-			for (int i = 0; i < turnNumber; i++)
-			turnRight();
-		}
-		else {	
-			for(int i = 0; i < 4 - turnNumber; i++)
+		//cout << this->currentDirection << " : " << goal << endl;
+		int turnNumber = goal - this->currentDirection;
+		//cout << "turn number: " << turnNumber << endl;
+		if (turnNumber > 0) {
+			if (turnNumber > 2) {
 				turnLeft();
+			}
+			else {
+				for (int i = 0; i < turnNumber; i++) {
+					turnRight();
+				}
+			}
 		}
+		else if (turnNumber < 0){
+			turnNumber = abs(turnNumber);
+			if (turnNumber > 2) {
+				turnRight();
+			}
+			else {
+				for (int i = 0; i < turnNumber; i++) {
+					turnLeft();
+				}
+			}
+
+		}
+
+
 
 		this->currentDirection = goal;
+		//cout << this->currentDirection << " : " << goal << endl;
 	}
 
 	void turnLeft() {
 
-		cout << "turnleft()";
+		cout << "turnleft()" << endl;
 	}
 
 	void turnRight() {
 
-		cout << "turnRight()";
+		cout << "turnRight()" << endl;
 	}
 
 	void lassO() {
 
-		cout << "lassO";
+		cout << "lassO" << endl;
 	}
 
 	void lassU() {
 
-		cout << "lassU";
+		cout << "lassU" << endl;
 	}
 
 	void move(char move[2]) {
+
 		
+			//cout << "moves" << (int)move[0] << (int)move[1] << endl;
+
+
 		//turn the robot the start direction
 		direction startDirection = (direction)(move[0] / 2);
 		turn(startDirection);
@@ -418,26 +420,39 @@ public:
 		//cout << plan.size() << endl;
 		for (unsigned int i = 0; i < plan.size() / 2; i++) {
 			//cout << plan.at(i * 2) << " " << plan.at(i * 2 + 1) << endl;
-			char a[2] = { plan.at(i * 2) , plan.at(i * 2 + 1) };
+			char a[2] = { plan.at(i * 2) - '0' , plan.at(i * 2 + 1) - '0' };
 			move(a);
 		}
 		
 	}
 
 
-	
-	
-
-
-
 };
+
+string readFile()
+{
+	stringstream str;
+	ifstream stream("FileWriter.txt");
+	if (stream.is_open())
+	{
+		while (stream.peek() != EOF)
+		{
+			str << (char)stream.get();
+		}
+		stream.close();
+		return str.str();
+	}
+}
 
 int main() {
 
+	system("java Main B-AC--D- BADC----");
+	
 	Navigator n = Navigator();
 
 	string startStatus = "B-AC--D-";
-	string plan = "34216243";
+	//string plan = "34216243";
+	string plan = readFile();
 	n.intit(startStatus, plan);
 }
 
