@@ -405,42 +405,6 @@ int main(int argc, char **argv)
     }
 
 
-    /* Motore einschalten
-    gripper.liftUp();
-    gripper.gripOpen();
-    //ArUtil::sleep(10000);
-    ArUtil::sleep(7000);
-    gripper.liftDown();
-    ArUtil::sleep(2000);
-    gripper.liftStop();
-    gripper.gripClose();
-
-    ArUtil::sleep(5000);
-    gripper.liftUp();
-    turnRight90();
-    gripper.gripOpen();
-    ArUtil::sleep(5000);
-
-    turnLeft90();
-    gripper.liftDown();
-    ArUtil::sleep(5000);
-    gripper.gripClose();
-    ArUtil::sleep(2000);
-
-    gripper.liftUp();
-    ArUtil::sleep(5000);
-    turnRight90();
-    gripper.gripOpen();
-    ArUtil::sleep(3000);
-    turnLeft90();
-
-   
-    */
-
-
-   
-
-
 
   ArLog::log(ArLog::Normal, "simpleMotionCommands: Exiting.");
   Aria::exit(0);
