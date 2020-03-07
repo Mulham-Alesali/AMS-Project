@@ -1,10 +1,39 @@
+/*
+Adept MobileRobots Robotics Interface for Applications (ARIA)
+Copyright (C) 2004-2005 ActivMedia Robotics LLC
+Copyright (C) 2006-2010 MobileRobots Inc.
+Copyright (C) 2011-2015 Adept Technology, Inc.
+Copyright (C) 2016 Omron Adept Technologies, Inc.
 
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation; either version 2 of the License, or
+     (at your option) any later version.
 
-#ifdef DEBUG
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
 
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+If you wish to redistribute ARIA under different terms, contact
+Adept MobileRobots for information about a commercial version of ARIA at
+robots@mobilerobots.com or
+Adept MobileRobots, 10 Columbia Drive, Amherst, NH 03031; +1-603-881-7960
+*/
 #include "Aria.h"
 #include <ArGripper.h>
-
+#include <string>
+#include <iostream>
+#include <cstdlib>
+#include <fstream>
+#include <streambuf>
+#include <bits.h>
+#include <sstream>
+#include <istream>
 /** @example simpleMotionCommands.cpp example showing how to connect and send
  * basic motion commands to the robot
  *
@@ -96,75 +125,215 @@ public:
 ArRobot robot;
 ArGripper gripper(&robot);
 
-void turnRight90(){
-    robot.lock();
-    robot.setDeltaHeading(90);
-    robot.unlock();
-    ArUtil::sleep(3000);
-}
 
-void turnLeft90(){
-    robot.lock();
-    robot.setDeltaHeading(-90);
-    robot.unlock();
-    ArUtil::sleep(3000);
-}
 
-void greifOben(){
-    gripper.liftUp();
-    gripper.gripOpen();
-    /*while (!(gripper.isLiftMaxed() && gripper.getGripState() == 1)){
-    ArUtil::sleep(100);
-    }*/
-    ArUtil::sleep(5000);
+using namespace std;
 
-    gripper.liftDown();
-    ArUtil::sleep(2000);
-    gripper.liftStop();
-    gripper.gripClose();
+enum direction { NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3 };
 
-    gripper.liftUp();
-    while (!gripper.isLiftMaxed()){
-        ArUtil::sleep(100);
-    }
-}
+class Navigator {
 
-void greifUnten(){
-    gripper.liftUp();
-    gripper.gripOpen();
-    while (!(gripper.isLiftMaxed() && gripper.getGripState() == 1)){
-        ArUtil::sleep(100);
+public:
+    direction currentDirection = NORTH;
+
+    string currentStatus;
+
+    void intit(string currentState, string plan) {
+        this->currentStatus = currentStatus;
+        solve(plan);
     }
 
-    gripper.liftDown();
+    void greifO() {
+        cout << "greif oben" << endl;
+        gripper.liftUp();
+        gripper.gripOpen();
+        /*while (!(gripper.isLiftMaxed() && gripper.getGripState() == 1)){
+        ArUtil::sleep(100);
+        }*/
+        ArUtil::sleep(3000);
+
+        gripper.liftDown();
+        ArUtil::sleep(2000);
+        gripper.liftStop();
+        gripper.gripClose();
+        ArUtil::sleep(3000);
+        gripper.liftUp();
+        ArUtil::sleep(3000);
+        while (!gripper.isLiftMaxed()){
+            ArUtil::sleep(100);
+        }
+
+    }
+
+    void greifU() {
+
+        cout << "greif Unten" << endl;
+        gripper.liftUp();
+        gripper.gripOpen();
+        ArUtil::sleep(3000);
    
-    while (gripper.isLiftMaxed()){
-        ArUtil::sleep(100);
+
+        gripper.liftDown();
+        ArUtil::sleep(3000);
+       
+
+        gripper.liftStop();
+        gripper.gripClose();
+        ArUtil::sleep(3000);
+        gripper.liftUp();
+        ArUtil::sleep(3000);
+       
+       
+        cout << "end of greifunten" << endl;
+       
     }
 
-    gripper.liftStop();
-    gripper.gripClose();
 
-    gripper.liftUp();
-    while (!gripper.isLiftMaxed()){
-        ArUtil::sleep(100);
+   
+    void turn(direction goal) {
+        cout << "turn to goal" << (goal) << endl;
+        //cout << this->currentDirection << " : " << goal << endl;
+        int turnNumber = goal - this->currentDirection;
+        //cout << "turn number: " << turnNumber << endl;
+        if (turnNumber > 0) {
+            if (turnNumber > 2) {
+                turnLeft();
+            }
+            else {
+                for (int i = 0; i < turnNumber; i++) {
+                    turnRight();
+                }
+            }
+        }
+        else if (turnNumber < 0){
+            turnNumber = abs(turnNumber);
+            if (turnNumber > 2) {
+                turnRight();
+            }
+            else {
+                for (int i = 0; i < turnNumber; i++) {
+                    turnLeft();
+                }
+            }
+
+        }
+
+
+
+        this->currentDirection = goal;
+        //cout << this->currentDirection << " : " << goal << endl;
     }
 
-}
 
-void lassenOben(){
-    gripper.gripOpen();
-    ArUtil::sleep(3000);
-}
+    void turnLeft() {
+        cout << "start turning left" << endl;
+        ArUtil::sleep(3000);
+        robot.lock();
+        robot.setDeltaHeading(90);
+        robot.unlock();
+        ArUtil::sleep(3000);
+        cout << "end of turning left" << endl;
+    }
 
-void lassenUnten(){
-    gripper.gripOpen();
-    ArUtil::sleep(3000);
+    void turnRight() {
+        cout << "start turning right" << endl;
+        robot.lock();
+        robot.setDeltaHeading(-90);
+        robot.unlock();
+        ArUtil::sleep(3000);
+        cout << "end of turning right" << endl;
+    }
+
+    void lassO() {
+        cout << "start of lassing oben" << endl;
+        gripper.gripOpen();
+        ArUtil::sleep(3000);
+        cout << "end of lassing oben" << endl;
+    }
+
+    void lassU() {
+        cout << "start of lassing unten" << endl;
+        gripper.gripOpen();
+        ArUtil::sleep(3000);
+        cout << "end of lassing unten" << endl;
+    }
+
+
+
+    void move(char move[2]) {
+
+
+        //cout << "moves" << (int)move[0] << (int)move[1] << endl;
+
+
+        //turn the robot the start direction
+        direction startDirection = (direction)(move[0] / 2);
+        cout << "turn to start direction" << " start direction " << startDirection << endl;
+        ArUtil::sleep(5000);
+        turn(startDirection);
+
+
+        //carry the box
+        //is the box up or down
+        if (move[0] % 2 == 1) {
+            greifO();
+        }
+        else {
+            greifU();
+        }
+
+        //find the goal direction and turn the robot to it
+        direction goalDirection = (direction)(move[1] / 2);
+        cout << "turn to goal direction" << endl;
+        turn(goalDirection);
+
+        if (move[1] % 2 == 1) {
+            lassO();
+        }
+        else {
+            lassU();
+        }
+
+
+    }
+
+
+    void solve(string plan) {
+        //cout << plan.size() << endl;
+        cout << "solve der Plan" << endl;
+        for (unsigned int i = 0; i < plan.size() / 2; i++) {
+            //cout << plan.at(i * 2) << " " << plan.at(i * 2 + 1) << endl;
+            char a[2] = { plan.at(i * 2) - '0', plan.at(i * 2 + 1) - '0' };
+            cout << "move befehl: " << (char)(a[0] + '0') << (char)(a[1] + '0') << endl;
+            move(a);
+        }
+
+    }
+
+};
+
+
+string readFile()
+{
+    stringstream str;
+    ifstream stream("FileWriter.txt");
+    if (stream.is_open())
+    {
+        while (stream.peek() != EOF)
+        {
+            str << (char)stream.get();
+        }
+        stream.close();
+        return str.str();
+    }
 }
 
 
 int main(int argc, char **argv)
 {
+   
+
+
 
     Aria::init();
 
@@ -210,13 +379,30 @@ int main(int argc, char **argv)
     robot.enableMotors();
     robot.unlock();
 
-    greifOben();
-    turnLeft90();
-    lassenOben();
-    turnRight90();
-    greifUnten();
-    turnLeft90();
-    turnRight90();
+        cout << "geben Sie bitte den Startzustand ein!\n z.b. B-AC--D-\n" << endl;
+        string s;
+        cin >> s;
+        int count = 0;
+    while (true){
+
+        string e;
+        cout << "geben Sie bitte den Endzustand ein!\n z.b. BADC---- \n" << endl;
+        cin >> e;
+       
+        string commandString = "java Main " + s + " " + e;
+        const char * command = commandString.c_str();
+        //system("java Main B-AC--D- BADC----");
+        system(command);
+        //b-a-c
+        Navigator n = Navigator();
+        string startStatus = "B-AC--D-";
+        //string plan = "34216243";
+        string plan = readFile();
+        cout << "plan: " << plan << endl;
+        n.intit(startStatus, plan);
+        n.turn(NORTH);
+        s = e;
+    }
 
 
     /* Motore einschalten
@@ -254,206 +440,9 @@ int main(int argc, char **argv)
 
    
 
-    gripper.liftStop();
 
-    //gripper.liftDown();
-
-
-    //turnRight90();
-    //nawid bitte hier arbeiten
-    //robot.lock();
-    //gripper.gripOpen();
-    //robot.unlock();
-    /*ArUtil::sleep(2000);
-    gripper.gripStop();
-   
-    gripper.gripClose();
-    ArUtil::sleep(1000);
-    gripper.gripStop();*/
-
-
-
-
-    //gripper.liftUp();
-    //ArUtil::sleep(10000);
-    //gripper.liftDown();
-    //ArUtil::sleep(10000);
-    //gripper.gripOpen();
-    //ArUtil::sleep(10000);
-    //gripper.gripClose();
-
-    //turnRight90();
-    //turnRight90();
-    //turnLeft90();
-    //turnLeft90();
 
   ArLog::log(ArLog::Normal, "simpleMotionCommands: Exiting.");
   Aria::exit(0);
-
   return 0;
 }
-
-#else
-
-
-#include <string>
-#include <iostream>
-#include <cstdlib>
-#include <fstream>
-#include <streambuf>
-#include <bits.h> 
-#include <sstream>
-
-using namespace std;
-
-enum direction { NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3 };
-
-class Navigator {
-
-public:
-	direction currentDirection = NORTH;
-
-	string currentStatus;
-
-	void intit(string currentState, string plan) {
-		this->currentStatus = currentStatus;
-		solve(plan);
-	}
-
-	void greifO() {
-		cout << "greifO" << endl;
-	}
-
-	void greifU() {
-		cout << "griefU" << endl;
-	}
-
-	
-	void turn(direction goal) {
-		//cout << this->currentDirection << " : " << goal << endl;
-		int turnNumber = goal - this->currentDirection;
-		//cout << "turn number: " << turnNumber << endl;
-		if (turnNumber > 0) {
-			if (turnNumber > 2) {
-				turnLeft();
-			}
-			else {
-				for (int i = 0; i < turnNumber; i++) {
-					turnRight();
-				}
-			}
-		}
-		else if (turnNumber < 0){
-			turnNumber = abs(turnNumber);
-			if (turnNumber > 2) {
-				turnRight();
-			}
-			else {
-				for (int i = 0; i < turnNumber; i++) {
-					turnLeft();
-				}
-			}
-
-		}
-
-
-
-		this->currentDirection = goal;
-		//cout << this->currentDirection << " : " << goal << endl;
-	}
-
-	void turnLeft() {
-
-		cout << "turnleft()" << endl;
-	}
-
-	void turnRight() {
-
-		cout << "turnRight()" << endl;
-	}
-
-	void lassO() {
-
-		cout << "lassO" << endl;
-	}
-
-	void lassU() {
-
-		cout << "lassU" << endl;
-	}
-
-	void move(char move[2]) {
-
-		
-			//cout << "moves" << (int)move[0] << (int)move[1] << endl;
-
-
-		//turn the robot the start direction
-		direction startDirection = (direction)(move[0] / 2);
-		turn(startDirection);
-		
-
-		//carry the box
-		//is the box up or down
-		if (move[0] % 2 == 1) {
-			greifO();
-		}
-		else {
-			greifU();
-		}
-
-		//find the goal direction and turn the robot to it
-		direction goalDirection = (direction)(move[1] / 2);
-		turn(goalDirection);
-		
-		if (move[1] % 2 == 1) {
-			lassO();
-		}
-		else {
-			lassU();
-		}
-
-
-	}
-
-	void solve(string plan) {
-		//cout << plan.size() << endl;
-		for (unsigned int i = 0; i < plan.size() / 2; i++) {
-			//cout << plan.at(i * 2) << " " << plan.at(i * 2 + 1) << endl;
-			char a[2] = { plan.at(i * 2) - '0' , plan.at(i * 2 + 1) - '0' };
-			move(a);
-		}
-		
-	}
-
-
-};
-
-string readFile()
-{
-	stringstream str;
-	ifstream stream("FileWriter.txt");
-	if (stream.is_open())
-	{
-		while (stream.peek() != EOF)
-		{
-			str << (char)stream.get();
-		}
-		stream.close();
-		return str.str();
-	}
-}
-
-int main() {
-
-	system("java Main B-AC--D- BADC----");
-	
-	Navigator n = Navigator();
-
-	string startStatus = "B-AC--D-";
-	//string plan = "34216243";
-	string plan = readFile();
-	n.intit(startStatus, plan);
-}
-
-#endif // !1
